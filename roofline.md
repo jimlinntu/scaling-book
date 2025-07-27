@@ -214,7 +214,7 @@ Again assuming B is small, we have 2BDF bfloat16 FLOPs but only DF weights (inst
 
 {% enddetails %}
 
-**Question 3:** For the problem above, make a roofline plot of peak FLOPs vs. B for several values of D and F.
+**Question 3:** For the problem above, make a roofline plot of peak FLOPs/sec vs. B for several values of D and F.
 
 **Question 4:** What if we wanted to perform $\text{int8[B, D]} *_D \text{int8[B, D, F]} \rightarrow \text{int8[B, F]}$ where we imagine having a different matrix for each batch element. What is the arithmetic intensity of this operation?
 
