@@ -350,7 +350,7 @@ Here is an empirical measurement of AllGather bandwidth on a TPU v5e 8x16 slice.
 
 {% include figure.liquid path="assets/img/all-gather-bandwidth.png" class="img-small" caption="<b>Figure:</b> empirical bandwidth and estimated link bandwidth for TPU v5e during an AllGather. BW in orange is the actual bytes per second AllGathered, while the blue curve shows the empirical unidirectional link bandwidth calculated according to the known cost of the collective." %}
 
-Note both that we achieve only about 95% of the peak claimed bandwidth (`4.5e10`) and that we achieve this peak at about 10MB, which when 16-way sharded gives us about 500kB per device (*aside: this is much better than GPUs).
+Note that we not only achieve about 95% of the peak claimed bandwidth (`4.5e10`) but also that we achieve this peak at about 10MB, which when 16-way sharded gives us about 500kB per device (*aside*: this is much better than GPUs).
 
 **What happens when we AllGather over multiple axes?** When we gather over multiple axes, we have multiple dimensions of ICI over which to perform the gather. For instance, AllGather<sub>XY</sub>([B, D<sub>XY</sub>]) operates over two hardware mesh axes. This increases the available bandwidth by a factor of $N_\text{axes}$.
 
