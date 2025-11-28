@@ -527,7 +527,7 @@ The KV caches are $2 * L * K * H$ per token in int8, which is `2 * 64 * 8 * 256 
 
 {% details Click here for the answer. %}
 
-Our KV caches have side $L * K * H$ per token in int8, or `64 * 8 * 256 = 131kB`. For 128k sequences, this means `131e3 * 128e3 = 16.8GB` per batch entry. Since each TPU has 16GB of HBM, including our parameters, the largest batch size we can fit is `(16 * 16e9 - 18.4e9) / 16.8e9 = 14`. If we had $K=1$, we would have 8 times this, aka about 112.
+Our KV caches have size $2 \cdot L \cdot K \cdot H$ per token in int8, or `2 * 64 * 8 * 256 = 262kB`. For 128k sequences, this means `262e3 * 128e3 = 33.5GB` per batch entry. Since each TPU has 16GB of HBM, including our parameters, the largest batch size we can fit is `(16 * 16e9 - 18.4e9) / 33.5e9 = 7`. If we had $K=1$, we would have 8 times this, aka about 56.
 
 {% enddetails %}
 
