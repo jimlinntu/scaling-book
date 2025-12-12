@@ -241,10 +241,10 @@ import jax.sharding as shd
 mesh = jax.make_mesh((2, 4), ('x', 'y'), (shd.AxisType.Explicit, shd.AxisType.Explicit))
 jax.set_mesh(mesh)
 
-x = jnp.arange(0, 512, dtype=jnp.int32, out_sharding=P(('x', 'y')))
+x = jnp.arange(0, 512, dtype=jnp.int32, out_sharding=jax.P(('x', 'y')))
 
 # This function will operate on 1/8th of the array.
-@jax.shard_map(in_specs=P(('x', 'y')), out_specs=P())
+@jax.shard_map(in_specs=jax.P(('x', 'y')), out_specs=jax.P())
 def slice_and_average(x):
   assert x.shape == (512 // 8,)
   return jax.lax.pmean(x[:4], axis_name=('x', 'y'))
