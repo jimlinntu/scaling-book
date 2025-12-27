@@ -63,6 +63,7 @@ toc:
   - subsections:
     - name: "Our final communication primitive: the AllToAll"
     - name: "More about the ReduceScatter"
+    - name: "How to overlap matmul communication with compute"
   - name: "What Have We Learned?"
   - name: "Some Problems to Work"
 
@@ -529,6 +530,14 @@ A[I, J_X] \cdot_{LOCAL} B[J_X, K] \rightarrow &\ C[I, K] \{ U_X \} \\
 \end{align*}$$
 
 Note that ReduceScatter *introduces* a sharded dimension, and so has a natural freedom to shard along either the **I** or **K** named dimensions in this case. We generally need to choose *which* named dimension to introduce a new sharding to when using a ReduceScatter (though the choice is usually forced by the larger modeling context). This is why we use the syntax **ReduceScatter<sub>X,K</sub>** to specify the axis to shard.
+
+### How to overlap matmul communication with compute
+
+As we discussed in [Part 1](../roofline), we generally assume we can always overlap communication with some useful computation if the comms are fast enough. The collectives in this section generally can be overlapped with the matrix multiplication compute itself, but doing so is non-trivial. The algorithm we use is something called a **collective matmul**, first described in [Wang et al.](https://dl.acm.org/doi/pdf/10.1145/3567955.3567959). Here is a simplified animation of how this overlap can be implemented:
+
+{% include figure.liquid path="assets/img/ag_matmul.gif" caption="<b>Figure:</b> an animation showing how a single sharded matrix-vector product can be overlapped with the resulting AllReduce (case 3 above). A full matmul is composed of multiple matrix-vector products." %}
+
+To put it simply, we can do the matmul for one chunk of the matrix while starting the ring reduction for previous chunks. In some cases we can also tile over the batch dimension or matrix input dimension. We work through a simple JAX implementation in [Part 10](../jax-stuff) and [the Mosaic docs](https://docs.jax.dev/en/latest/pallas/gpu/collective_matmul.html) also gives a good example on GPU. We encourage you to implement a version of this at some point. 
 
 ## What Have We Learned?
 
