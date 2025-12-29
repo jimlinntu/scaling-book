@@ -194,7 +194,7 @@ Let's stick to our setting from above and say we want to train LLaMA 3-70B with 
 
 $$X_{opt} = \sqrt{\frac{2BN}{F}} = \sqrt{\frac{2 \cdot 4.19e6 \cdot 8960}{28672}} = 1618$$
 
-Rounding to a reasonable multiple of 2, that gives us roughly 2048-way FSDP and 4-way tensor parallelism parallelism. That should work well!
+Rounding to a reasonable multiple of 2, that gives us roughly 2048-way FSDP and 4-way tensor parallelism. That should work well!
 
 {% enddetails %}
 
@@ -208,6 +208,6 @@ Rounding to a reasonable multiple of 2, that gives us roughly 2048-way FSDP and 
 
 (a) Using the LLaMA 3-405B [config](https://huggingface.co/meta-llama/Llama-3.1-405B/blob/main/config.json), write a table with all the key hyperparameters as above. How many total parameters does this model have? How many FLOPs per training step? How many FLOPs do we perform if we train for 15T tokens?
 
-(b) Assume we want to train on 8 TPU v5p pods. What parallelism scheme would we use? How long would training take? Would be compute or comms bound?
+(b) Assume we want to train on 8 TPU v5p pods. What parallelism scheme would we use? How long would training take? Would we be compute or comms bound?
 
 <h3 markdown=1 class="next-section">That's all for Section 6. For Section 7, about Transformer inference, click [here](../inference).</h3>

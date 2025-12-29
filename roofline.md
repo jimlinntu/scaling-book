@@ -155,7 +155,7 @@ $$\begin{equation}
 We can get a nice simplification if we assume our "batch size" $B$ is small relative to $D$ and $F$. Then we get
 
 $$\begin{equation}
-\frac{BDF}{BD + DF + BF} \approxeq \frac{BDF}{DF} = B
+\frac{BDF}{BD + DF + BF} \approx \frac{BDF}{DF} = B
 \end{equation}$$
 
 $$\begin{equation}
@@ -222,7 +222,7 @@ Here is the plot in question:
 
 {% include figure.liquid path="assets/img/roofline-plot-q3.png" class="img-fluid img-small" %}
 
-Note that both models eventually acheive the peak hardware FLOPs/s, but the larger D/F achieve it sooner. D=F=1024 almost doubles the critical batch size. The code to generate this figure is here:
+Note that both models eventually achieve the peak hardware FLOPs/s, but the larger D/F achieve it sooner. D=F=1024 almost doubles the critical batch size. The code to generate this figure is here:
 
 ```py
 import matplotlib.pyplot as plt

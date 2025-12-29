@@ -112,7 +112,7 @@ We'll explain the syntax of HLO in just a second, but for now just note that it 
 ROOT %dot.4 = f32[16,128]{1,0} dot(f32[256,16]{1,0} %convert.3, f32[128,256]{1,0} %Arg_0.1), lhs_contracting_dims={0}, rhs_contracting_dims={1}
 ```
 
-is the actual matmul above that multiplies two f32 matrices along the 0 and 1 dimension, respectively.
+is the actual matmul above that multiplies two f32 matrices along the 0 and 1 dimensions, respectively.
 
 **To transform this HLO to code that can be executed on the TPU, the XLA compiler first lowers it to LLO** (low-level optimizer) IR. LLO programs the TPU directly, scheduling copies between memories, pushing arrays onto the systolic array, etc. LLO code contains primitives that push buffers into the systolic array, pull results off, and schedule DMAs that communicate between different pieces of TPU memory. Once this has been lowered to LLO, it is then compiled to machine code that is loaded into the TPU IMEM and executed.
 

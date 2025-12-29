@@ -95,7 +95,7 @@ Here's an example 2D array **A** sharded across 4 TPUs:
 
 {% include figure.liquid path="assets/img/sharding-example.png" class="img-fluid" caption="<b>Figure:</b> an example array of shape <b>A</b>[I, J] gets sharded across 4 devices. Both dimensions are evenly sharded across 2 devices with a sharding <b>A</b>[I<sub>X</sub>, J<sub>Y</sub>]. Each TPU holds 1/4 of the total memory." %}
 
-Note how the sharded array still has the same *global* or *logical shape* as unsharded array, say `(4, 128)`, but it also has a *device local shape*, like `(2, 64)`, which gives us the actual size in bytes that each TPU is holding (in the figure above, each TPU holds ¼ of the total array). Now we'll generalize this to arbitrary arrays.
+Note how the sharded array still has the same *global* or *logical shape* as the unsharded array, say `(4, 128)`, but it also has a *device local shape*, like `(2, 64)`, which gives us the actual size in bytes that each TPU is holding (in the figure above, each TPU holds ¼ of the total array). Now we'll generalize this to arbitrary arrays.
 
 ### A unified notation for sharding
 
@@ -317,7 +317,7 @@ We could either AllGather **A** initially to remove the input sharding, or we ca
 
 {% include figure.liquid path="assets/img/all-gather.gif" caption="<b>Figure:</b> An animation showing how to perform an AllGather around a set of 8 TPU or GPU devices. Each device starts with 1 / 8th of the array and ends up with a full copy." %}
 
-We can either do an AllGather in one direction or both directions (two directions is shown above). If we do one direction, each TPU sends chunks of size $\text{bytes} / N$ over $N - 1$ hops around the ring. If we do two directions, we have $\lfoor \frac{N}{2} \rfloor$ hops of size $2 \cdot \text{bytes} / N$.
+We can either do an AllGather in one direction or both directions (two directions is shown above). If we do one direction, each TPU sends chunks of size $\text{bytes} / N$ over $N - 1$ hops around the ring. If we do two directions, we have $\lfloor \frac{N}{2} \rfloor$ hops of size $2 \cdot \text{bytes} / N$.
 
 **How long does this take?** Let's take the bidirectional AllGather and calculate how long it takes. Let $$V$$ be the number of bytes in the array, and $X$ be the number of shards on the contracting dimension. Then from the above diagram, each hop sends $V / \lvert X\rvert$ bytes in each direction, so each hop takes
 
@@ -474,7 +474,7 @@ If we generalize to an ND AllToAll, the overall cost for an array of $V$ bytes o
 
 $$T_\text{comms per AllToAll} = \frac{V \cdot \max(A, B, C, ...)}{4 \cdot N \cdot W_\text{ici}}$$
 
-where as usual $W_\text{ici}$ is the bidirectional ICI bandwidth. For a 1D mesh, this reduces to $V / (4 \cdot W_\text{ici})$, which is 1 / 4 the cost of an AllReduce. In 2D, the cost actually scales down with the size of the smallest axis.
+where as usual $W_\text{ici}$ is the bidirectional ICI bandwidth. For a 1D mesh, this reduces to $V / (4 \cdot W_\text{ici})$, which is 1 / 4 the cost of an AllGather. In 2D, the cost actually scales down with the size of the smallest axis.
 
 *Aside: If you want a hand-wavy derivation of this fact, start with a 1D torus $\mathbb{Z} / N\mathbb{Z}$. If we pick a source and target node at random, they are on average N / 4 hops from each other, giving us a cost of $(V \cdot N) / (4 * N)$. Now if we consider an ND torus, each axis is basically independent. Each node has $1 / N$ bytes and on average has to hop its data $\max(A, B, C, …) / 4$ hops.*
 
@@ -490,9 +490,9 @@ $$\textbf{ReduceScatter}_X A'[I] \{ U_X \} \rightarrow A'[I_X]$$
 
 Likewise, $$\text{ReduceScatter}_X(A[I] \{U_X\}) \to A[I_X]$$ in the forward pass implies $$\text{AllGather}_{X}(A'[I_X]) \to A'[I]$$ in the backwards pass.
 
-{% details For details on how AllGather and ReduceScatter are derivatives of eachother, click here. %}
+{% details For details on how AllGather and ReduceScatter are derivatives of each other, click here. %}
 
-This stems from the fact that broadcasts and reductions are transposes of eachother as linear operators, and AllGather and ReduceScatter are outer products (also known as [Kronecker products](https://en.wikipedia.org/wiki/Kronecker_product)) of broadcast and reduce, respectively. Concretely, if we have a vector $x \in \mathbb{R}^n$, any number of devices $p \in \mathbb{N}$, and we let $u = (1, \ldots, 1) \in \mathbb{R}^p$, we can define broadcast and reduce in the following way, which should match your intuitive understanding of them:
+This stems from the fact that broadcasts and reductions are transposes of each other as linear operators, and AllGather and ReduceScatter are outer products (also known as [Kronecker products](https://en.wikipedia.org/wiki/Kronecker_product)) of broadcast and reduce, respectively. Concretely, if we have a vector $x \in \mathbb{R}^n$, any number of devices $p \in \mathbb{N}$, and we let $u = (1, \ldots, 1) \in \mathbb{R}^p$, we can define broadcast and reduce in the following way, which should match your intuitive understanding of them:
 
 $$
 \begin{align*}
@@ -537,7 +537,7 @@ As we discussed in [Part 1](../roofline), we generally assume we can always over
 
 {% include figure.liquid path="assets/img/ag_matmul.gif" caption="<b>Figure:</b> an animation showing how a single sharded matrix-vector product can be overlapped with the resulting AllReduce (case 3 above). A full matmul is composed of multiple matrix-vector products." %}
 
-To put it simply, we can do the matmul for one chunk of the matrix while starting the ring reduction for previous chunks. In some cases we can also tile over the batch dimension or matrix input dimension. We work through a simple JAX implementation in [Part 10](../jax-stuff) and [the Mosaic docs](https://docs.jax.dev/en/latest/pallas/gpu/collective_matmul.html) also gives a good example on GPU. We encourage you to implement a version of this at some point. 
+To put it simply, we can do the matmul for one chunk of the matrix while starting the ring reduction for previous chunks. In some cases we can also tile over the batch dimension or matrix input dimension. We work through a simple JAX implementation in [Part 10](../jax-stuff) and [the Mosaic docs](https://docs.jax.dev/en/latest/pallas/gpu/collective_matmul.html) also give a good example on GPU. We encourage you to implement a version of this at some point. 
 
 ## What Have We Learned?
 

@@ -106,7 +106,7 @@ y               & \textrm{[P]}   \\
 A               & \textrm{[N P]} \\
 B               & \textrm{[P M]} \\
 \hline
-\end {array}
+\end{array}
 $$
 
 - A dot product of $$x \cdot y$$ requires $$P$$ _adds_ and _multiplies_, or $$2P$$ floating-point operations total.
@@ -126,7 +126,7 @@ AB         & 2NPM & NP + PM \\
 &
   \prod c_i + \prod d_j \\
 \hline
-\end {array}
+\end{array}
 $$
 
 Make note of the fact that for a matrix-matrix multiply, the *compute* scales cubically $$O(N^3)$$ while the data transfer only scales quadratically $$O(N^2)$$ \- this means that as we scale up our matmul size, it becomes *easier* to hit the compute-saturated limit. This is extremely unusual, and explains in large part why we use architectures dominated by matrix multiplication \- they're amenable to being scaled!
@@ -145,7 +145,7 @@ which is an outer product and requires $2NPM$ FLOPs to compute (since it contrac
 
 $$\frac{\partial L}{\partial A} = \frac{\partial L}{\partial C}\frac{\partial C}{\partial A} = \left(\frac{\partial L}{\partial C}\right) B^T$$
 
-is again $2NPM$ FLOPs since **dL/dC** is a (co-)vector of size $$[N, M]$$. While this quantity isn't the derivative wrt. a parameter, it's used to compute derivatives for previous layers of the network (e.g. just as dL/dC is used to compute dL/dB above).
+is again $2NPM$ FLOPs since **dL/dC** is a (co-)vector of size $$[N, M]$$. While this quantity isn't the derivative w.r.t. a parameter, it's used to compute derivatives for previous layers of the network (e.g. just as dL/dC is used to compute dL/dB above).
 
 Adding these up, we see that **during training, we have a total of 6NPM FLOPs**, compared to 2NPM during inference: 2NPM in the forward pass, 4NPM in the backward pass. Since PM is the number of parameters in the matrix, this is the simplest form of the famous $$6 * \text{num parameters} * \text{num tokens}$$ approximation of Transformer FLOPs during training: each token requires $$6 * \text{num parameters}$$ FLOPs. We'll show a more correct derivation below.
 

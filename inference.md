@@ -150,10 +150,10 @@ A TPU or GPU can overlap these by loading as it does the compute, so to be compu
 
 $$\frac{2BDF}{2BD + 2DF + 2BF} \geq \frac{\text{Accelerator FLOPs/s}}{\text{Bandwidth Bytes/s}} \underset{\text{TPU v5e}}{=} \frac{1.97E+14}{8.20E+11} = 240$$
 
-where the RHS is the arithmetic intensity of our hardware. Now let's assume $D$ and $F$ are very large compared to $B$ (usually our batches are at most 500 and $D$ and $F > 10k$), we can simplify the denominator by using the fact that $\small{2BD + 2DF + 2BF \approxeq 2DF}$ which gives us
+where the RHS is the arithmetic intensity of our hardware. Now let's assume $D$ and $F$ are very large compared to $B$ (usually our batches are at most 500 and $D$ and $F > 10k$), we can simplify the denominator by using the fact that $\small{2BD + 2DF + 2BF \approx 2DF}$ which gives us
 
 $$\begin{align*}
-\frac{2BDF}{2BD + 2DF + 2BF} \approxeq \frac{2BDF}{2DF} \geq \frac{\text{Accelerator FLOPs/s}}{\text{Bandwidth Bytes/s}} \\
+\frac{2BDF}{2BD + 2DF + 2BF} \approx \frac{2BDF}{2DF} \geq \frac{\text{Accelerator FLOPs/s}}{\text{Bandwidth Bytes/s}} \\
 \underset{\text{TPU v5e}}{=} \frac{1.97E+14}{8.20E+11} \implies B \geq 240 = B_{\text{crit}}
 \end{align*}$$
 
@@ -327,7 +327,7 @@ This also effectively increases the arithmetic intensity of the attention comput
 
 **Mixing in some local attention layers:** Local attention caps the context to a small to moderately sized max length. At training time and prefill time, this involves masking the attention matrix to a diagonal strip instead of a triangle. This effectively caps the size of the max length of the KV cache for the local layers. By mixing in some local layers into the model with some global layers, the KV cache is greatly reduced in size at contexts longer than the local window.
 
-**Sharing KVs across layers:** The model can learn to share the same KV caches across layers in some pattern. Whilst this does reduce the KV cache size, and provide benefits in increasing batch size, caching, offline storage etc. shared KV caches may need to be read from HBM multiple times, *so it does not necessarily improve the step time.*
+**Sharing KVs across layers:** The model can learn to share the same KV caches across layers in some pattern. Whilst this does reduce the KV cache size, and provide benefits in increasing batch size, caching, offline storage, etc. Shared KV caches may need to be read from HBM multiple times, *so it does not necessarily improve the step time.*
 
 {% include figure.liquid path="assets/img/kv-sharing.png" class="img-fluid" caption="
  <b>Left:</b> Multiple layers of pure global attention. <b>Right:</b> An example of some global/local interleaving pattern with sharing with adjacent layers. Source: <a href=\"https://research.character.ai/optimizing-inference/?ref=blog.character.ai\">Character.ai blog</a>."%}
