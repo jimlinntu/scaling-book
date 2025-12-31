@@ -57,7 +57,7 @@ toc:
   - name: TPU Networking
   - name: Key Takeaways
   - subsections:
-    - name: TPU Specs
+    - name: TPU specs
   - name: Worked Problems
   - name: Appendix
   - subsections:
@@ -159,7 +159,7 @@ TPU v5e and Trillium pods consist of a single `16x16` 2D torus with wraparounds 
 
 **ICI is very fast relative to DCN, but is still slower than HBM bandwidth.** For instance, a [TPU v5p](https://cloud.google.com/tpu/docs/v5p#system_architecture) has:
 
-* `2.5e12` bytes/s (2.5 TB/s) of HBM bandwidth per chip.
+* `2.8e12` bytes/s (2.8 TB/s) of HBM bandwidth per chip.
 * `9e10` bytes/s (90 GB/s) of ICI bandwidth per axis, with 3 axes per chip.<d-footnote>The page above lists 100 GB/s of bandwidth, which is slightly different from what's listed here. TPU ICI links have slightly different bandwidths depending on the operation being performed. You can generally use the numbers in this doc without worry.</d-footnote>
 * `6.25e9` bytes/s (6.25 GB/s) of DCN (egress) bandwidth per TPU (via 1-2 NICs on each host).<d-footnote>TPU v6e has 12.5e9 bytes/s and v5e has 3.125e9 bytes/s.</d-footnote>
 
@@ -185,7 +185,7 @@ This means that when we split models across multiple chips, we need to be carefu
 
 * To avoid bottlenecking the TPU compute unit, we need to **make sure the amount of communication across each channel is proportional to its speed**.
 
-### TPU Specs
+### TPU specs
 
 Here are some specific numbers for our chips:
 
@@ -231,7 +231,7 @@ That's pretty cool, because *that's a reasonable lower bound on the latency of s
 
 **Answer:** For TPU v5e, each pod is `16x16` and each host is a 4x2 slice, so we have `16*16 / 8 = 32` hosts. For TPU v5e, each TPU has only one core, so we have 256 TensorCores. The total FLOPs/s is `16*16*2e14 = 5.1e16` in bfloat16. Each chip has 16GB of HBM, so that's `256 * 16 = 4TB` of memory.
 
-For a full TPU v5p pod, we have `16x20x28` chips and each host is 2x2x1, so we have `16*20*28 / 2*2 = 2,240` hosts. For TPU v5p, each TPU has two TensorCores, so we have `8960 * 2 = 17,920` cores. The total FLOPs/s is `8960 * 4.5e14 = 4e18` in bfloat16. Each chip has 96GB of HBM, so that's `8960 * 96 = 860TB` of memory.
+For a full TPU v5p pod, we have `16x20x28` chips and each host is 2x2x1, so we have `(16*20*28) / (2*2) = 2,240` hosts. For TPU v5p, each TPU has two TensorCores, so we have `8960 * 2 = 17,920` cores. The total FLOPs/s is `8960 * 4.5e14 = 4e18` in bfloat16. Each chip has 96GB of HBM, so that's `8960 * 96 = 860TB` of memory.
 
 {% enddetails %}
 
@@ -344,7 +344,7 @@ To put this in context, a single scalar core controls a VPU (consisting of 4096 
 
 ### Appendix B: How does a systolic array work?
 
-At the core of the TPU MXU is a `128x128` systolic array (`256x256` on TPU v6e). When fully saturated the systolic array can perform one `bfloat16[8,128] @ bf16[128x128] -> f32[8,128]`<d-footnote>If you are not familiar with this notation, it means: multiplying a `8x128` matrix with bfloat16 elements by a `128x128` matrix with bfloat16 elements and storing the results in a `8x128` matrix with float32 elements.</d-footnote> multiplication per 8 clock cycles.
+At the core of the TPU MXU is a `128x128` systolic array (`256x256` on TPU v6e). When fully saturated the systolic array can perform one `bfloat16[8,128] @ bf16[128,128] -> f32[8,128]`<d-footnote>If you are not familiar with this notation, it means: multiplying a `8x128` matrix with bfloat16 elements by a `128x128` matrix with bfloat16 elements and storing the results in a `8x128` matrix with float32 elements.</d-footnote> multiplication per 8 clock cycles.
 
 * At its core, the systolic array is a 2D `128x128` (`=16,384`) grid of ALUs each capable of performing a multiply and add operation.
 * Weights (**W**, the `128x128` input) are passed down from above (called the RHS) while inputs (**X**, the `8x128` input) are passed in from the left (called the LHS).
