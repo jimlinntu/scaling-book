@@ -104,7 +104,7 @@ We'll use the following notation to simplify calculations throughout this sectio
 | Notation | Meaning (hardware characteristic)                                                                 |
 | :------- | :------------------------------------------------------------------------------------------------ |
 | C        | FLOPS/s per chip                                                                                  |
-| W        | Network bandwidth (bidirectional, often subscripted as  e.g. $W_{\text{ici}}$ or $W_{\text{dcn}}$ |
+| W        | Network bandwidth (bidirectional, often subscripted as  e.g. $W_{\text{ici}}$ or $W_{\text{dcn}}$) |
 | X        | Number of chips along mesh axis X                                                                 |
 | Y        | Number of chips along an alternate mesh axis, labeled Y                                           |
 | Z        | Number of chips along a third mesh axis, labeled Z                                                |
@@ -546,7 +546,7 @@ def loss_fn(batch):
 
 loss, dx = jax.value_and_grad(loss_fn)(x)
 
-for i in range(0, num_layers, -1):
+for i in range(num_layers - 1, -1, -1):
   _, f_vjp = jax.vjp(layer_fn, intermediates[i + 1], weights[i])
   dx, dw = f_vjp(dx)  # compute the jvp dx @ J(L)(x[i], W[i])
   weights[i] = weights[i] - 0.01 * dw  # update our weights
@@ -587,9 +587,9 @@ For TPU v5p, the $\frac{C}{W_\text{dcn}}$ is about `4.46e14 / 6.25e9 = 71,360`. 
 
 * We can do Tensor Parallelism up to $Y = M_Y \cdot F / 2550 \approxeq 11 \cdot M_Y$.
 * We can do FSDP so long as $B / N > 2550 / M_X$. That means if we want to train with BS=2M and 3 axes of data parallelism, we'd at most be able to use $\approx 2400$ chips, roughly a quarter of a TPU v5p pod.
-* When we combine FSDP + Tensor Parallelism, become comms-bound when we have $B / N < 2550^2 / 2 * 30,000 = 108$, so this lets us scale to roughly 18k chips! However, the maximum size of a TPU v5p pod is 8k chips, so beyond that we have to use DCN.
+* When we combine FSDP + Tensor Parallelism, become comms-bound when we have $B / N < 2550^2 / (2 \cdot 30000) = 108$, so this lets us scale to roughly 18k chips! However, the maximum size of a TPU v5p pod is 8k chips, so beyond that we have to use DCN.
 
-The TLDR is that we have a nice recipe for training with BS=1M, using roughly X (FSDP) = 1024 and Y (TP) = 8, but with BS=2M we need to use DCN. As noted above, we have a DCN arithmetic intensity of $\text{71,360}$, so we just need to make sure our batch size per ICI domain is greater than this. This is trivial for us, since with 2 pods we'd have a per-pod BS of 1M, and a per GPu batch size of 111, which is great (maybe cutting it a bit close, but theoretially sound).
+The TLDR is that we have a nice recipe for training with BS=1M, using roughly X (FSDP) = 1024 and Y (TP) = 8, but with BS=2M we need to use DCN. As noted above, we have a DCN arithmetic intensity of $\text{71,360}$, so we just need to make sure our batch size per ICI domain is greater than this. This is trivial for us, since with 2 pods we'd have a per-pod BS of 1M, and a per TPU batch size of 111, which is great (maybe cutting it a bit close, but theoretically sound).
 
 <p markdown=1 class="takeaway">**Takeaway:** Scaling across multiple TPU pods is fairly straightforward using pure data parallelism so long as our per-pod batch size is at least 71k tokens.</p>
 
@@ -638,7 +638,7 @@ $$
 
 * Pure data parallelism is rarely useful because the model and its optimizer state use bytes = 10x parameter count. This means we can rarely fit more than a few billion parameters in memory.
 
-* Data parallelism and FSDP become comms bound when the $$\text{batch size per shard} < C / W$$, the arithmetic intensity of the network. For ICI this is 2,550 and for DCN this is 75,000. This can be increased with more parallel axes.
+* Data parallelism and FSDP become comms bound when the $$\text{batch size per shard} < C / W$$, the arithmetic intensity of the network. For ICI this is 2,550 and for DCN this is about 75,000. This can be increased with more parallel axes.
 
 * Tensor parallelism becomes comms bound when $$\lvert Y\rvert > F / 2550$$. **This is around 8-16 way for most models.** This is independent of the batch size.
 
@@ -723,7 +723,7 @@ Using this, we get the following formulas (letting Tmp[B, F] stand for In[B, D] 
 
 1. dW<sub>out</sub>[F, D] = Tmp[B, F] *<sub>B</sub> dOut[B, D]
 2. dTmp[B, F] = dOut[B, D] *<sub>D</sub> W<sub>out</sub>[F, D]
-3. dW<sub>in</sub> = dTmp[B, F] *<sub>B</sub> Tmp[B, F]
+3. dW<sub>in</sub>[D, F] = In[B, D] *<sub>B</sub> dTmp[B, F]
 4. dIn[B, D] = dTmp[B, F] *<sub>F</sub> W<sub>in</sub>[D, F]
 
 </div>
