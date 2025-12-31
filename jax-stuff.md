@@ -158,7 +158,7 @@ mesh = jax.make_mesh((4, 2), ('X', 'Y'))
 
 def matmul(x, Win, Wout):
   hidden = jnp.einsum('bd,df->bf', x, Win)
-  hidden = jax.lax.with_sharding_constraint(hidden, jax.P('x', 'y'))
+  hidden = jax.lax.with_sharding_constraint(hidden, jax.P('X', 'Y'))
   return jnp.einsum('bf,df->bd', hidden, Wout)
 ```
 
@@ -172,6 +172,7 @@ Explicit sharding (or “sharding in types”) looks a lot like automatic shardi
 import jax
 import jax.numpy as jnp
 import jax.sharding as shd
+import numpy as np
 
 # Running on an TPU v5e 2x2. This assigns names to the two physical axes of the hardware.
 mesh = jax.make_mesh(axis_shapes=(2, 2), axis_names=('X', 'Y'),

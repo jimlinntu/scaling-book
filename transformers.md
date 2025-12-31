@@ -239,7 +239,7 @@ $$
 \end{align*}
 $$
 
-Leading to a famous rule of thumb for estimating dense Transformer FLOP count, ignoring the attention FLOPs. (Unembedding is another simple matmul with $6BSDV$ FLOPs and $DV$ params, and follows the same rule of thumb.)
+Leading to a famous rule of thumb for estimating dense Transformer FLOP count, ignoring the attention FLOPs. (Unembedding is another simple matmul with $6BTDV$ FLOPs and $DV$ params, and follows the same rule of thumb.)
 
 ### Fractional cost of attention with context length
 
@@ -253,7 +253,7 @@ So the takeaway is that **dot-product attention FLOPs only become dominant durin
 
 ### Sparsity and Mixture-of-Experts
 
-We'd be remiss not to briefly discuss Mixture of Experts (MoE) models<d-cite key="moe"></d-cite>, which replace the single dense MLP blocks in a standard Transformer with a set of independent MLPs that can be dynamically routed between. To a first approximation, **an MoE is just a normal dense model with E MLP blocks per layer**, instead of just one. Each token activates $k$ of these experts, typically $k \ll E$. The ratio $E / k$ is called the sparsity and is usually between 8 and 64 (e.g. [DeekSeek v3](https://arxiv.org/pdf/2412.19437) has effectively $k=8$, $E=256$). This increases the parameter count by $O(E)$, while multiplying the total number of activated parameters per token by $k$, compared with the dense version.
+We'd be remiss not to briefly discuss Mixture of Experts (MoE) models<d-cite key="moe"></d-cite>, which replace the single dense MLP blocks in a standard Transformer with a set of independent MLPs that can be dynamically routed between. To a first approximation, **an MoE is just a normal dense model with E MLP blocks per layer**, instead of just one. Each token activates $k$ of these experts, typically $k \ll E$. The ratio $E / k$ is called the sparsity and is usually between 8 and 64 (e.g. [DeepSeek v3](https://arxiv.org/pdf/2412.19437) has effectively $k=8$, $E=256$). This increases the parameter count by $O(E)$, while multiplying the total number of activated parameters per token by $k$, compared with the dense version.
 
 {% include figure.liquid path="assets/img/moe.png" class="img-fluid img-small" caption="<b>Figure:</b> an example MoE layer with $n$ experts. The gating expert routes each token to $k$ of them, and the output of those $k$ MLPs get summed. Our parameter count is $n$ times the size of each expert, but only $k$ are used for each token. <a href=\"https://deepgram.com/learn/mixture-of-experts-ml-model-guide\">Source</a>." %}
 
@@ -405,7 +405,7 @@ Therefore, we need $B > 120 \cdot E / k$ to be compute bound. For DeepSeek, this
 
 ### Appendix A: How does Flash Attention work?
 
-The traditional objection to scaling Transformers to very long context is that the attention FLOPs and memory usage scale quadratically with context length. While it's true that the attention QK product has shape $[B, S, T, N]$ where B is the batch size, S and T are the Q and K sequence dims, and N is the number of heads, this claim comes with some serious caveats:
+The traditional objection to scaling Transformers to very long context is that the attention FLOPs and memory usage scale quadratically with context length. While it's true that the attention QK product has shape $[B, T, S, N]$ where B is the batch size, S and T are the Q and K sequence dims, and N is the number of heads, this claim comes with some serious caveats:
 
 1. As we noted in Section 4, even though this is quadratic, the attention FLOPs only dominated when $$S > 8 \cdot D$$, and especially during training the memory of a single attention matrix is small compared to all of the weights and activation checkpoints living in memory, especially when sharded.
 2. We don't need to materialize the full attention matrix in order to compute attention! We can compute local sums and maxes and avoid ever materializing more than a small chunk of the array. While the total FLOPs is still quadratic, we drastically reduce memory pressure.

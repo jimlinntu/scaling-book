@@ -100,7 +100,7 @@ We'd also like to thank many others who gave critical feedback throughout the pr
 
 **Thank you all!**
 
-<p markdown=1 class="announce">Before you go, you might also enjoy reading the new [Section 12](../gpus) on NVIDIA GPUs!</p>
+<p markdown=1 class="announce">Before you go, you might also enjoy reading the new [Part 12](../gpus) on NVIDIA GPUs!</p>
 
 ## Further Reading
 

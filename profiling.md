@@ -148,7 +148,7 @@ Here's an overview of what you can do in the profiler:
 
 Once in TensorBoard, the profiler has a few key tabs that help you understand your program:
 
-1. **Trace Viewer** shows a detailed timeline of what's actually happening on the TPU as a timeline.
+1. **Trace Viewer** shows a detailed timeline of what's actually happening on the TPU.
 2. **Graph Viewer** shows the HLO graph, letting you see what parts of the program feed into each other and how things are sharded.
 3. **Memory Profile and Memory Viewer:** these show how much memory your program is using.
 
@@ -238,7 +238,7 @@ which is basically a little ReduceScatter (here's the GraphViewer);
 
 {% include figure.liquid path="assets/img/reduce-scatter-xprof.png" class="img-fluid" %}
 
-How long do we expect this to take? Well, we're doing a ReduceScatter on a TPUv2 4x2, which should require only one hop on 1.2e11 bidirectional bandwidth. The array has size `2*32*1024*8192` with the batch axis sharded 4 ways, so each shard is `2*8*1024*8192=134MB`. So this should take roughly 1.1ms. **How long does it actually take?** 1.13ms reported in the profile. So we're really close to the roofline!
+How long do we expect this to take? Well, we're doing a ReduceScatter on a TPUv2 4x2, which should require only one hop on 1.2e11 bidirectional bandwidth. The array has size `2*32*1024*8192` with the batch axis sharded 4 ways, so each shard is `2*8*1024*8192=128MB`. So this should take roughly 1.1ms. **How long does it actually take?** 1.13ms reported in the profile. So we're really close to the roofline!
 
 **Let's look at attention too!** Here's a profile of the attention component:
 
@@ -271,7 +271,7 @@ You can see a reduce, two big fusions, and an all-reduce. The first big fusion i
 
 ```%fusion.1 = bf16[4096]{0:T(1024)(128)(2,1)} fusion(bf16[4096,8192]{1,0:T(8,128)(2,1)} %param.1, bf16[8192]{0:T(1024)(128)(2,1)} %reduce.6), kind=kLoop, calls=%fused_computation.1```
 
-which tells us the per-shard shape is `bf16[8192] * bf16[4096, 8192] -> bf16[4096]` (over the 8192 dimension). By observing the final AllReduce with `replica_groups=\{\{0,16,32,48,64,80,96,112\}, ...\}`, we can tell we're doing 8-way model parallelism, so the true shapes are `[8, 8192] * bf16[32,768, 8192] -> bf16[8, 32,768]`.
+which tells us the per-shard shape is `bf16[8192] * bf16[4096, 8192] -> bf16[4096]` (over the 8192 dimension). By observing the final AllReduce with `replica_groups=\{\{0,16,32,48,64,80,96,112\}, ...\}`, we can tell we're doing 8-way model parallelism, so the true shapes are `[8, 8192] * bf16[32768, 8192] -> bf16[8, 32768]`.
 
 {% enddetails %}
 
