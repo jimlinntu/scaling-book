@@ -220,7 +220,7 @@ If we used a 4x8 slice in bfloat16, we would have 372GB remaining for KV caches,
 |   int8 (on 4x4)   |    0.90    |
 |   int4 (on 2x4)   |    1.80    |
 
-A further increase would give an even bigger win! The big takeaway is that **the smallest topology is not the most performance topology** in all cases, if we're limited by KV cache size.
+A further increase would give an even bigger win! The big takeaway is that **the smallest topology is not the most performant topology** in all cases, if we're limited by KV cache size.
 
 {% enddetails %}
 

@@ -106,7 +106,7 @@ jax.jit plays two roles inside JAX. As the name suggests, it "just-in-time" comp
 import jax
 import jax.numpy as jnp
 
-# Running on an TPU v5e 4x2. This assigns names to the two physical axes of the hardware.
+# Running on a TPU v5e 4x2. This assigns names to the two physical axes of the hardware.
 mesh = jax.make_mesh(axis_shapes=(4, 2), axis_names=('X', 'Y'))
 
 # This tells JAX to use this mesh for all operations, so you can just specify the PartitionSpec P.
@@ -148,7 +148,7 @@ ROOT %AllReduce = bf16[2,8192]{1,0:T(4,128)(2,1)} AllReduce(bf16[2,8192]{1,0:T(4
 
 We can see the matmul (the fusion) and the AllReduce above. Pay particular attention to the shapes. `bf16[2, 1024]` is a local view of the activations, since our `batch_size=8` is split across 4 devices and our `d_model=2048` is likewise split 2 ways.
 
-**This is pretty magical!** No matter how complicated our program is, [Shardy]((https://openxla.org/shardy)) and jit will attempt to find shardings for all the intermediate activations and add communication as needed. With that said, Shardy has its flaws. It can make mistakes. Sometimes you'll look at a profile and notice something has gone wrong. A giant AllGather takes up 80% of the profile, where it doesn't need to. When this happens, we can try to correct the compiler by explicitly annotating intermediate tensors with `jax.lax.with_sharding_constraint`. For instance, with two matmuls I can force the intermediate activations to be sharded along the `y` dimension (not that this is a good idea) with the following:
+**This is pretty magical!** No matter how complicated our program is, [Shardy](https://openxla.org/shardy) and jit will attempt to find shardings for all the intermediate activations and add communication as needed. With that said, Shardy has its flaws. It can make mistakes. Sometimes you'll look at a profile and notice something has gone wrong. A giant AllGather takes up 80% of the profile, where it doesn't need to. When this happens, we can try to correct the compiler by explicitly annotating intermediate tensors with `jax.lax.with_sharding_constraint`. For instance, with two matmuls I can force the intermediate activations to be sharded along the `y` dimension (not that this is a good idea) with the following:
 
 ```py
 import jax
@@ -174,7 +174,7 @@ import jax.numpy as jnp
 import jax.sharding as shd
 import numpy as np
 
-# Running on an TPU v5e 2x2. This assigns names to the two physical axes of the hardware.
+# Running on a TPU v5e 2x2. This assigns names to the two physical axes of the hardware.
 mesh = jax.make_mesh(axis_shapes=(2, 2), axis_names=('X', 'Y'),
                                        axis_types=(shd.AxisType.Explicit, shd.AxisType.Explicit))
 

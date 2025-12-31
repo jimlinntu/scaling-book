@@ -95,7 +95,7 @@ _styles: >
 
 ## The Basics of Transformer Inference
 
-So you've trained a Transformer, and you want to use it to generate some new sequences. _At the end of the day, benchmark scores going up and loss curves going down are only proxies for whether something interesting is going to happen once the rubber hits the road!_<d-footnote>Historically, you can do a surprising amount of research on Transformers without ever touching inference — LLM loss, multiple choice benchmarks can be run efficiently without a proper KV cache or generation loop implementation. This meant, especially in research codebases, there's often a lot of low hanging fruit in the inference codepath.</d-footnote>
+So you've trained a Transformer, and you want to use it to generate some new sequences. _At the end of the day, benchmark scores going up and loss curves going down are only proxies for whether something interesting is going to happen once the rubber hits the road!_<d-footnote>Historically, you can do a surprising amount of research on Transformers without ever touching inference — scoring-based multiple choice benchmarks can be run efficiently without a proper KV cache or generation loop implementation. This meant, especially in research codebases, there's often a lot of low hanging fruit in the inference codepath.</d-footnote>
 
 Sampling is conceptually simple. We put a sequence in and our favorite Transformer will spit out $$\log p(\text{next token}_i \vert \text{previous tokens})$$, i.e. log-probabilities for all possible next tokens. We can sample from this distribution and obtain a new token. Append this token and repeat this process and we obtain a sequence of tokens which is a continuation of the prompt.
 
@@ -116,7 +116,7 @@ Here's a diagram of sampling with a KV cache:
 
 By sampling with a KV cache, we've reduced our time complexity to generate $n$ tokens to $$O(n)$$ on the FFW and $$O(n^2)$$ on the attention, since we never reprocess a previous token. However, many forward passes are still needed to generate a sequence — that's what's happening when you query Gemini or ChatGPT and the result streams back to you. Every token is (usually) a separate (but partially cached) Transformer call to a massive model.
 
-We will soon see that <b style="color: red;">prefill</b> and <b style="color: blue;">generation</b> are very different beasts —— Transformer inference is two tasks in disguise! Compared to training, the KV cache is also a novel and significant source of complexity.
+We will soon see that <b style="color: red;">prefill</b> and <b style="color: blue;">generation</b> are very different beasts — Transformer inference is two tasks in disguise! Compared to training, the KV cache is also a novel and significant source of complexity.
 
 ### What do we actually want to optimize?
 
@@ -134,7 +134,7 @@ So far we've mostly treated a Transformer as a stack of feedforward blocks. Whil
 
 1. **A bunch of linear operations**, including the MLP ($W_{in}$, $W_{out}$) and the attention QKV projections and output projections ($W_Q$, $W_K$, $W_V$, and $W_O$). These all involve reading parameters and a batch of activations from HBM, doing some FLOPs, and writing the result back to HBM.
 2. **Dot-product attention**. We need to read a batch of key-value projections and a batch of query activations from HBM, do a few inner products and some softmax operations, and write the attention result back to HBM.
-3. **Everything else**, including applying layer norms, activation functions, tokens sampling, updating KV caches, and positional embeddings. These do take some FLOPs, but are dominated by, or fused into, the above.
+3. **Everything else**, including applying layer norms, activation functions, token sampling, updating KV caches, and positional embeddings. These do take some FLOPs, but are dominated by, or fused into, the above.
 
 For the next couple of sections, we're going to look at each of these in the context of prefill and generation and ask what is likely to bottleneck our performance. Within a single accelerator, are we compute-bound or memory-bound? We want to emphasize how different the answers will be for prefill versus generation.
 
@@ -267,7 +267,7 @@ What's using memory during inference? Well, obviously, our parameters. Counting 
 
 | param            | formula                                                                                                          | size (in bytes)                                                |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| FFW params       | d_model<sup>2</sup> x ffw_multiplier x 3 (for gelu + out-projection) x n_layers                                  | 5,120 x 5,120 x 2.7 x 3 x 40 = **8.5e9**                       |
+| FFW params       | d_model<sup>2</sup> x ffw_multiplier x 3 (for SwiGLU gate, up, and down projections) x n_layers                                  | 5,120 x 5,120 x 2.7 x 3 x 40 = **8.5e9**                       |
 | Vocab params     | 2 (input and output embeddings) x n_embeddings x d_model                                                         | 2 x 32,000 x 5,120 = **0.3e9**                                 |
 | Attention params | [2 (*q and output*) x d_model x n_heads x d_qkv + 2 (*for k and v*) x d_model x n\_kv\_heads x d_qkv] x n_layers | (2 x 5,120 x 40 x 128 + 2 x 5,120 x 40 x 128) x 40 = **4.2e9** |
 
@@ -327,7 +327,7 @@ This also effectively increases the arithmetic intensity of the attention comput
 
 **Mixing in some local attention layers:** Local attention caps the context to a small to moderately sized max length. At training time and prefill time, this involves masking the attention matrix to a diagonal strip instead of a triangle. This effectively caps the size of the max length of the KV cache for the local layers. By mixing in some local layers into the model with some global layers, the KV cache is greatly reduced in size at contexts longer than the local window.
 
-**Sharing KVs across layers:** The model can learn to share the same KV caches across layers in some pattern. Whilst this does reduce the KV cache size, and provide benefits in increasing batch size, caching, offline storage, etc. Shared KV caches may need to be read from HBM multiple times, *so it does not necessarily improve the step time.*
+**Sharing KVs across layers:** The model can learn to share the same KV caches across layers in some pattern. Whilst this does reduce the KV cache size, and provide benefits in increasing batch size, caching, offline storage, etc., shared KV caches may need to be read from HBM multiple times, *so it does not necessarily improve the step time.*
 
 {% include figure.liquid path="assets/img/kv-sharing.png" class="img-fluid" caption="
  <b>Left:</b> Multiple layers of pure global attention. <b>Right:</b> An example of some global/local interleaving pattern with sharing with adjacent layers. Source: <a href=\"https://research.character.ai/optimizing-inference/?ref=blog.character.ai\">Character.ai blog</a>."%}
@@ -338,7 +338,7 @@ This also effectively increases the arithmetic intensity of the attention comput
 
 Paged Attention<d-cite key="paged"></d-cite> is a refinement upon this that stores KV caches in OS-style page tables and mostly avoids padding the KV caches altogether. This adds a lot of complexity but means every batch only uses as much memory as it needs. This is a runtime optimization, so again it is indifferent to architecture.
 
-{% include figure.liquid path="assets/img/paged-attention.png" class="img-fluid img-small" caption="<b>Figure:</b> during generation, a single token (fourth) attends to multiple KV cache blocks/pages. By paging the KV cache, we avoid loading or storing more memory than we need to. Taken from the <a href=\"https://arxiv.org/pdf/2309.06180\">PagedAttention paper</a>." %}
+{% include figure.liquid path="assets/img/paged-attention.png" class="img-fluid img-small" caption="<b>Figure:</b> during generation, a single token (\"forth\") attends to multiple KV cache blocks/pages. By paging the KV cache, we avoid loading or storing more memory than we need to. Taken from the <a href=\"https://arxiv.org/pdf/2309.06180\">PagedAttention paper</a>." %}
 
 <p markdown=1 class="takeaway">**Big Picture:** All told, these KV cache optimizations can reduce KV cache sizes by over an order of magnitude compared to a standard MHA Transformer. This can lead to an order-of-magnitude improvement in the overall cost of the Transformer.</p>
 
@@ -562,7 +562,7 @@ For this sharding, what is the rough per-step latency for generation?
 
 (3) The KV cache size stays the same as the MoE character doesn't change anything about the attention mechanism.
 
-(4) This is still $2ND$ where $D$ is the activated parameter count. Thus this is $2 * \text{31.2e9} * T$.
+(4) This is still $2 \cdot \text{activated params} \cdot T$. Thus this is $2 * \text{31.2e9} * T$.
 
 {% enddetails %}
 
