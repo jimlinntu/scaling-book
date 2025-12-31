@@ -175,7 +175,7 @@ However, during generation, for each request, we can only do our forward passes 
 
 ### What about attention?
 
-Things get more complicated when we look at the dot-product attention operation, especially since we have to account for KV caches. Let's look at just one attention head with pure multi-headed attention. In a single Flash Attention fusion, we<d-footnote>We're simplifying a fair bit here by ignoring the non-matmul FLOPs in applying the softmax, masks etc. They should be overlapped with computation or HBM reads, but it can be non-trivial to do on certain TPU generations. Whese details don't change the main message, which is that KV caches are usually memory bound.</d-footnote>:
+Things get more complicated when we look at the dot-product attention operation, especially since we have to account for KV caches. Let's look at just one attention head with pure multi-headed attention. In a single Flash Attention fusion, we<d-footnote>We're simplifying a fair bit here by ignoring the non-matmul FLOPs in applying the softmax, masks etc. They should be overlapped with computation or HBM reads, but this can be non-trivial to do on certain TPU generations. While these details don't change the main message, which is that KV caches are usually memory bound, they are worth paying attention to.</d-footnote>:
 
 1. Read the $Q$ activations of shape $\text{bf16[B, T, D]}$ from HBM.
 2. Read the $KV$ cache, which is a pair of $\text{bf16[B, S, D]}$ tensors from HBM.
