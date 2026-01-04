@@ -84,7 +84,7 @@ _styles: >
   }
 ---
 
-**Thank you for reading this set of essays and congratulations on making it all the way to the end.** Before we conclude, a few acknowledgments:
+**Thank you for reading the whole thing and congratulations on making it all the way to the end.** Before we conclude, a few acknowledgments:
 
 ## Acknowledgments
 
