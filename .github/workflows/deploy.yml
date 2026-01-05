@@ -33,4 +33,4 @@ jobs:
           bundler-cache: true
 
       - name: Deploy
-        run: bin/deploy --yes
+        run: bash bin/deploy --yes
