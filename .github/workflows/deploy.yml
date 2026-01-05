@@ -33,4 +33,7 @@ jobs:
           bundler-cache: true
 
       - name: Deploy
-        run: bash bin/deploy --yes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          bash bin/deploy --yes
