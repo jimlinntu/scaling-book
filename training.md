@@ -95,7 +95,7 @@ We'll use the following notation to simplify calculations throughout this sectio
 
 | Notation | Meaning (model parameters)                                             |
 | :------- | :--------------------------------------------------------------------- |
-| D        | **d**<sub>model</sub> ( the hidden dimension/residual stream dim)      |
+| D        | **d**<sub>model</sub> (the hidden dimension/residual stream dim)      |
 | F        | **d**<sub>ff</sub> (the feed-forward dimension)                        |
 | B        | Batch dimension (number of tokens in the batch; total, not per-device) |
 | T        | Sequence length                                                        |
