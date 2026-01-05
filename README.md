@@ -17,16 +17,7 @@ brew install imagemagick ruby
 pip install jupyter
 ```
 
-After this is installed, you should make sure the correct version of Ruby is found in PATH. You should have at least ruby 3.4.5 installed. You may need to add
-
-```
-if [ -d "/opt/homebrew/opt/ruby/bin" ]; then
-  export PATH=/opt/homebrew/opt/ruby/bin:$PATH
-  export PATH=`gem environment gemdir`/bin:$PATH
-fi
-```
-
-to your .bashrc to get the right version. After this, you should be able to clone and run the repository.
+After this is installed, you should make sure the correct version of Ruby is found in PATH. You should have at least Ruby 3.4.5 installed. Then you ought to be able to run
 
 ```
 git clone https://github.com/jax-ml/scaling-book.git
@@ -37,7 +28,7 @@ bundle exec jekyll serve
 
 Once you have run jekyll serve successfully, the book will be available at `http://127.0.0.1:4000/scaling-book`.
 
-To deploy to the GitHub Pages site (with repo write permission), run `sh bin/deploy`, which will take about 3 minutes to run.
+The Github Pages deployment is handled by a GitHub Action that runs automatically on new commits to the main branch.
 
 ### Contributing and Contact
 
