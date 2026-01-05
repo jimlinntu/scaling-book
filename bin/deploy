@@ -7,7 +7,7 @@
 SRC_BRANCH="main"
 DEPLOY_BRANCH="gh-pages"
 
-USAGE_MSG="usage: deploy [-h|--help] [-u|--user] [-s|--src SRC_BRANCH] [-d|--deploy DEPLOY_BRANCH] [--verbose] [--no-push]"
+USAGE_MSG="usage: deploy [-h|--help] [-u|--user] [-s|--src SRC_BRANCH] [-d|--deploy DEPLOY_BRANCH] [--verbose] [--no-push] [--yes]"
 
 while [[ $# > 0 ]]; do
     key="$1"
@@ -33,6 +33,9 @@ while [[ $# > 0 ]]; do
         --no-push)
         NO_PUSH="--no-push"
         ;;
+        --yes|-y)
+        YES=true
+        ;;
         *)
         echo "Option $1 is unknown." >&2
         echo $USAGE_MSG >&2
@@ -49,11 +52,13 @@ echo "Deploying..."
 echo "Source branch: $SRC_BRANCH"
 echo "Deploy branch: $DEPLOY_BRANCH"
 
-read -r -p "Do you want to proceed? [y/N] " response
-if [[ ! $response =~ ^([yY][eE][sS]|[yY])+$ ]]
-then
-    echo "Aborting."
-    [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
+if [[ ! $YES ]]; then
+    read -r -p "Do you want to proceed? [y/N] " response
+    if [[ ! $response =~ ^([yY][eE][sS]|[yY])+$ ]]
+    then
+        echo "Aborting."
+        [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
+    fi
 fi
 
 # Helps with JJ syncing.
