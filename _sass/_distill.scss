@@ -88,22 +88,15 @@ d-article {
     grid-column: 1 / 4;
     grid-row: auto / span 4;
     justify-self: end;
-    margin-top: 0em;
-    padding-left: 2em;
-    padding-right: 3em;
-    border-right: 1px solid var(--global-divider-color);
-    width: calc(max(75%, 320px));
     position: sticky;
     top: 85px;
-    margin-right: 0px;
-    margin-top: 0em;
-    display: grid;
-    grid-template-columns:
-      minmax(8px, 1fr) [toc] auto minmax(8px, 1fr) [toc-line] 1px minmax(32px, 2fr);
+    padding-left: 1em;
+    padding-right: 2em;
+    border-right: 1px solid var(--global-divider-color);
+    width: fit-content;
+    max-width: 250px;
 
     nav {
-      grid-column: toc;
-
       a {
         border-bottom: none !important;
 
@@ -140,11 +133,6 @@ d-article {
     .figcaption {
       line-height: 1.4em;
     }
-
-    toc-line {
-      border-right: 1px solid var(--global-divider-color);
-      grid-column: toc-line;
-    }
   }
 
   d-footnote {
@@ -172,21 +160,31 @@ d-appendix {
   }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 999px) {
   d-article {
     d-contents {
       display: none;
-      // grid-column-start: 2;
-      // grid-column-end: -2;
-      // padding-bottom: 0.5em;
-      // margin-bottom: 1em;
-      // padding-top: 0.5em;
-      // width: 100%;
-      // border: 1px solid var(--global-divider-color);
-      // nav {
-      //   grid-column: none;
-      // }
     }
+  }
+
+  // When TOC is hidden, expand content to use full page width
+  d-title > *,
+  d-byline .byline {
+    grid-column: page !important;
+  }
+
+  d-article p,
+  d-article ul,
+  d-article ol,
+  d-article blockquote,
+  d-article pre,
+  d-article table,
+  d-article details,
+  d-article figure,
+  d-article img,
+  d-article .l-body,
+  d-article .l-text {
+    grid-column: page !important;
   }
 }
 
