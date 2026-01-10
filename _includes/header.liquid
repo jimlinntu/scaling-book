@@ -12,6 +12,7 @@
     function scrollFunction() {
       // Get the button:
       let mybutton = document.getElementById("top-button");
+      if (!mybutton) return;
 
       if (document.body.scrollTop > 40 || document.documentElement.scrollTop > 40) {
         mybutton.style.display = "block";
