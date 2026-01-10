@@ -414,7 +414,7 @@ $$\begin{align*}
 \textbf{AllGather}_Y : A[I_X, J_Y] \rightarrow &\ A[I_X, J]
 \end{align*}$$
 
-**What about a ReduceScatter?** Just as the AllReduce removes a subscript ($F_Y \to F$ above), a ReduceScatter sums an unreduced/partially summed array and then scatters (shards) a different logical axis along the same mesh axis. $[F]\\{U_Y\\} \to [F_Y]$. The animation shows how this is done: note that it's very similar to an AllGather but instead of retaining each shard, we sum them together. Thus, its latency is roughly the same, excluding the time taken to perform the reduction.
+**What about a ReduceScatter?** Just as the AllGather sums a partially reduced array (removing the U<sub>X</sub> suffix), a ReduceScatter sums an unreduced/partially summed array and then scatters (shards) a different logical axis along the same mesh axis. $X[F]\\{U_Y\\} \to X[F_Y]$. The animation shows how this is done: note that it's very similar to an AllGather but instead of retaining each shard, we sum them together. Thus, its latency is roughly the same, excluding the time taken to perform the reduction.
 
 {% include figure.liquid path="assets/img/reduce-scatter.gif" class="img-fluid" %}
 
