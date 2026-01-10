@@ -82,15 +82,9 @@
             </a>
           </li>
 
-      <li class="nav-item nav-hidden"><a class="nav-link" onclick="goToTop()" id="top-button" style="display: none;">Back to Top</a></li>
-
-      <li class="nav-item nav-hidden"><p class="nav-link"></p></li>
-
       <li class="nav-item nav-hidden"><a class="nav-link" href="{{ page.previous_section_url }}">Previous Part</a></li>
 
       <li class="nav-item nav-hidden"><a class="nav-link" href="{{ page.next_section_url }}">Next Part</a></li>
-
-      <li class="nav-item nav-hidden"><p class="nav-link"></p></li>
  
           <!-- Other pages -->
           {% assign sorted_pages = site.pages | sort: 'nav_order' %}
@@ -113,7 +107,8 @@
                     aria-haspopup="true"
                     aria-expanded="false"
                   >
-                    {{- p.title }}
+                    <i class="ti ti-list dropdown-icon"></i>
+                    <span class="dropdown-text">{{- p.title }}</span>
                     {% if page.title == p.title or has_active_child %}
                       <span class="sr-only">(current)</span>
                     {% endif %}

@@ -312,6 +312,93 @@ mjx-container {
     display: block;
     overflow-x: auto;
   }
+
+  // Keep navbar expanded on small screens
+  .navbar-toggler {
+    display: none !important;
+  }
+
+  .navbar-collapse {
+    display: flex !important;
+    flex-basis: auto;
+  }
+
+  .navbar-nav {
+    flex-direction: row !important;
+    align-items: center;
+  }
+
+  // Hide dropdown text, show only icon
+  .dropdown-text {
+    display: none;
+  }
+
+  .dropdown-icon {
+    font-size: 1.2rem;
+  }
+
+  // Compact spacing
+  .nav-item {
+    padding: 0 0.25rem;
+  }
+
+  // Center the dark mode toggle vertically
+  .toggle-container {
+    display: flex !important;
+    align-items: center;
+  }
+
+  .toggle-container button {
+    display: flex;
+    align-items: center;
+  }
+
+  // Move section arrows further right to avoid dropdown overlap
+  .section-button {
+    z-index: 1000;
+  }
+
+  .left-button {
+    right: 130px !important;
+    top: 8px !important;
+  }
+
+  .right-button {
+    right: 95px !important;
+    top: 8px !important;
+  }
+
+  // Dropdown with icon - absolute position
+  .nav-item.dropdown {
+    position: absolute;
+    right: 40px;
+    top: 8px;
+  }
+
+  // Moon toggle - absolute position
+  .toggle-container {
+    position: absolute;
+    right: 20px;
+    top: 1.5px;
+  }
+
+  // Compact navbar vertically
+  .navbar {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+
+  .nav-link {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+}
+
+// Show icon by default on larger screens too, hide it
+@media (min-width: 577px) {
+  .dropdown-icon {
+    display: none;
+  }
 }
 
 .left-button {
@@ -334,7 +421,7 @@ mjx-container {
   height: 20px;
 }
 
-@media (min-width: 576px) {
+@media (min-width: 577px) {
   .section-button {
     display: none;
   }
